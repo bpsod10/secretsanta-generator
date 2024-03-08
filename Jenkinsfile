@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('git-checkout') {
             steps {
-                git 'https://github.com/jaiswaladi246/secretsanta-generator.git'
+                git 'https://github.com/bpsod10/secretsanta-generator.git'
             }
         }
 
@@ -66,8 +66,8 @@ pipeline {
             steps {
                script{
                    withDockerRegistry(credentialsId: 'docker-cred') {
-                    sh "docker tag santa123 adijaiswal/santa123:latest"
-                    sh "docker push adijaiswal/santa123:latest"
+                    sh "docker tag santa123 bpsod10/santa123:latest"
+                    sh "docker push bpsod10/santa123:latest"
                  }
                }
             }
@@ -76,7 +76,7 @@ pipeline {
         	 
         stage('Docker Image Scan') {
             steps {
-               sh "trivy image adijaiswal/santa123:latest "
+               sh "trivy image bpsod10/santa123:latest "
             }
         }}
         
@@ -91,7 +91,7 @@ pipeline {
                                     <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
                                 </body>
                             </html>''',
-                    to: 'jaiswaladi246@gmail.com',
+                    to: 'bpsod10@gmail.com',
                     from: 'jenkins@example.com',
                     replyTo: 'jenkins@example.com',
                     mimeType: 'text/html'
