@@ -29,7 +29,7 @@ pipeline {
         
 		stage('OWASP Dependency Check') {
             steps {
-               dependencyCheck additionalArguments: ' --scan ./ ', odcInstallation: 'DC'
+               dependencyCheck additionalArguments: ' --scan ./ ', odcInstallation: 'DP'
                     dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
@@ -37,7 +37,7 @@ pipeline {
 
         stage('Sonar Analysis') {
             steps {
-               withSonarQubeEnv('sonar'){
+               withSonarQubeEnv('sonar-server'){
                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Santa \
                    -Dsonar.java.binaries=. \
                    -Dsonar.projectKey=Santa '''
@@ -78,26 +78,39 @@ pipeline {
             steps {
                sh "trivy image bpsod10/santa123:latest "
             }
-        }}
-        
-         post {
-            always {
-                emailext (
-                    subject: "Pipeline Status: ${BUILD_NUMBER}",
-                    body: '''<html>
-                                <body>
-                                    <p>Build Status: ${BUILD_STATUS}</p>
-                                    <p>Build Number: ${BUILD_NUMBER}</p>
-                                    <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
-                                </body>
-                            </html>''',
-                    to: 'bpsod10@gmail.com',
-                    from: 'jenkins@example.com',
-                    replyTo: 'jenkins@example.com',
-                    mimeType: 'text/html'
-                )
+        }
+        stage('k8s deploy') {
+            steps {
+               withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8s-secret-token', namespace: '', restrictKubeConfigAccess: false, serverUrl: 'https://44.200.116.37:6443') {
+                sh 'kubectl apply -f deployment-service.yaml'
+                sh 'kubectl get svc'
+                }
             }
         }
+        
+        
+        
+        
+        }
+        
+        //  post {
+        //     always {
+        //         emailext (
+        //             subject: "Pipeline Status: ${BUILD_NUMBER}",
+        //             body: '''<html>
+        //                         <body>
+        //                             <p>Build Status: ${BUILD_STATUS}</p>
+        //                             <p>Build Number: ${BUILD_NUMBER}</p>
+        //                             <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
+        //                         </body>
+        //                     </html>''',
+        //             to: 'bpsod10@gmail.com',
+        //             from: 'jenkins@example.com',
+        //             replyTo: 'jenkins@example.com',
+        //             mimeType: 'text/html'
+        //         )
+        //     }
+        // }
 		
 		
 
